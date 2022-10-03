@@ -1,5 +1,6 @@
 import copy
 
+import xlsxwriter
 from matplotlib.pyplot import imread
 from matplotlib.pyplot import imsave
 
@@ -9,7 +10,7 @@ with open('message.txt') as file:
     message = file.read()  # сообщение для шифрования
 colors = [0, 1, 2]  # цвета rgb: 0 - r, 1 - g, 2 - b
 bits = [5, 6, 7]  # номера битов для замены; отсчёт от нуля
-percent = 30
+percent = 5
 
 first_24_values_of_blue = [start_image[i // start_image.shape[0]][i % 24][2] for i in range(24)]
 
@@ -20,19 +21,81 @@ def print_header():
     n = len(bits)
     c = len(colors)
 
-    print(f"Ширина = {width} пикселей")
-    print(f"Высота = {height} пикселей")
+    print(f"Высота = {width} пикселей")
+    print(f"Ширина = {height} пикселей")
     print(f"Максимальный встраиваемый объём информации:")
     print(f"Если используются последний бит и одна компонента цвета: {(width * height) // 8} символов")
     print(f"Если используются последний бит и все три компоненты цвета: {(width * height * 3) // 8} символов")
     print(f"Если используются два последних бита и одна компонента цвета: {(width * height * 2) // 8} символов")
     print(f"Если используются два последних бита и все три компоненты цвета: {(width * height * 2 * 3) // 8} символов")
     print(f"Если используются три последних младших бита и одна компонента цвета: {(width * height * 3) // 8} символов")
-    print(f"Если используются три последних младших бита и все три компоненты цвета: {(width * height * 3 * 3) // 8} символов")
+    print(
+        f"Если используются три последних младших бита и все три компоненты цвета: {(width * height * 3 * 3) // 8} символов")
+
+
+def write_row(worksheet, name, row, items):
+    worksheet.write(row, 0, name)
+
+    for i in range(len(items)):
+        worksheet.write(row, i + 1, items[i])
 
 
 def print_tables():
+    workbook = xlsxwriter.Workbook('output.xlsx')
+    worksheet = workbook.add_worksheet()
+
+    # evaluations
+    column_numbers = [j + 1 for j in range(24)]
+    first_24_symbols_of_message = [s for s in message[:9]]
+    first_24_symbols_of_message_in_bits = ['{:08b}'.format(bytearray(symbol, 'utf-8')[0]) for symbol in
+                                           first_24_symbols_of_message]
+    sequence = ''.join(first_24_symbols_of_message_in_bits)
+
+    first_24_values_in_bits = ['{:08b}'.format(number) for number in first_24_values_of_blue]
+
+    i = 0
+    change_last_bit = []
+    for value in first_24_values_in_bits:
+        change_last_bit.append(value[:7] + sequence[i])
+        i += 1
+    change_last_value = [int(b, 2) for b in change_last_bit]
+
+    i = 0
+    change_two_bits = []
+    for value in first_24_values_in_bits:
+        change_two_bits.append(value[:6] + sequence[i] + sequence[i + 1])
+        i += 2
+    change_two_value = [int(b, 2) for b in change_two_bits]
+
+    i = 0
+    change_three_bits = []
+    for value in first_24_values_in_bits:
+        change_three_bits.append(value[:5] + sequence[i] + sequence[i + 1] + sequence[i + 2])
+        i += 3
+    change_three_value = [int(b, 2) for b in change_three_bits]
+
+    # print to excel
+    write_row(worksheet, "Первые 9 символов сообщения", 0, first_24_symbols_of_message)
+    write_row(worksheet, "Биты первых 9 символов сообщения", 1, first_24_symbols_of_message_in_bits)
+    write_row(worksheet, "Первые 24 значения синей цветовой компоненты", 4, first_24_values_of_blue)
+    write_row(worksheet, "Биты первых 24 значений синей цветовой компоненты", 5, first_24_values_in_bits)
+    write_row(worksheet, "Биты первых 24 значений синей цветовой компоненты после встраивания 1 бита", 7,
+              change_last_bit)
+    write_row(worksheet, "Биты первых 24 значений синей цветовой компоненты после встраивания 2 бит", 8,
+              change_two_bits)
+    write_row(worksheet, "Биты первых 24 значений синей цветовой компоненты после встраивания 3 бит", 9,
+              change_three_bits)
+    write_row(worksheet, "Первые 24 значения синей цветовой компоненты после встраивания 1 бита", 11, change_last_value)
+    write_row(worksheet, "Первые 24 значения синей цветовой компоненты после встраивания 2 бит", 12, change_two_value)
+    write_row(worksheet, "Первые 24 значения синей цветовой компоненты после встраивания 3 бит", 13, change_three_value)
+
+    # print to console
     print()
+    print('|'.join(f"{i + 1:^8}" for i in range(24)))
+    print('|'.join(f"{number:^8}" for number in first_24_values_of_blue))
+    print('|'.join(first_24_values_in_bits))
+
+    workbook.close()
 
 
 def print_info():
