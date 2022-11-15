@@ -4,8 +4,10 @@ import xlsxwriter
 from matplotlib.pyplot import imread
 from matplotlib.pyplot import imsave
 
-start_image = imread('image.bmp')
-image = copy.deepcopy(imread('image.bmp'))  # начальная картинка
+image_file_name = 'image.bmp'
+
+start_image = imread(image_file_name)
+image = copy.deepcopy(imread(image_file_name))  # начальная картинка
 with open('message.txt') as file:
     message = file.read()  # сообщение для шифрования
 colors = [0, 1, 2]  # цвета rgb: 0 - r, 1 - g, 2 - b
@@ -24,13 +26,13 @@ def print_header():
     print(f"Высота = {width} пикселей")
     print(f"Ширина = {height} пикселей")
     print(f"Максимальный встраиваемый объём информации:")
-    print(f"Если используются последний бит и одна компонента цвета: {(width * height) // 8} символов")
-    print(f"Если используются последний бит и все три компоненты цвета: {(width * height * 3) // 8} символов")
-    print(f"Если используются два последних бита и одна компонента цвета: {(width * height * 2) // 8} символов")
-    print(f"Если используются два последних бита и все три компоненты цвета: {(width * height * 2 * 3) // 8} символов")
-    print(f"Если используются три последних младших бита и одна компонента цвета: {(width * height * 3) // 8} символов")
+    print(f"Если используются последний бит и одна компонента цвета: {width} * {height} * 1 * 1 / 8 = {(width * height) // 8} символов")
+    print(f"Если используются последний бит и все три компоненты цвета: {width} * {height} * 1 * 3 / 8 = {(width * height * 3) // 8} символов")
+    print(f"Если используются два последних бита и одна компонента цвета: {width} * {height} * 2 * 1 / 8 = {(width * height * 2) // 8} символов")
+    print(f"Если используются два последних бита и все три компоненты цвета: {width} * {height} * 2 * 3 / 8 = {(width * height * 2 * 3) // 8} символов")
+    print(f"Если используются три последних младших бита и одна компонента цвета: {width} * {height} * 3 * 1 / 8 = {(width * height * 3) // 8} символов")
     print(
-        f"Если используются три последних младших бита и все три компоненты цвета: {(width * height * 3 * 3) // 8} символов")
+        f"Если используются три последних младших бита и все три компоненты цвета: {width} * {height} * 3 * 3 / 8 = {(width * height * 3 * 3) // 8} символов")
 
 
 def write_row(worksheet, name, row, items):
@@ -131,6 +133,7 @@ def set_pixel_bit(pixel, rgb, bit, value):
 
 
 def embed_text_to_image():
+    image = copy.deepcopy(imread(image_file_name))  # начальная картинка
     number = 0
     sequence = get_sequence()
     sequence_length = len(sequence)
