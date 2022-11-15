@@ -6,9 +6,9 @@ from matplotlib.pyplot import imsave
 
 start_image = imread('image.bmp')
 image = copy.deepcopy(imread('image.bmp'))  # начальная картинка
-with open('message.txt') as file:
-    message = file.read()  # сообщение для шифрования
-colors = [0, 1, 2]  # цвета rgb: 0 - r, 1 - g, 2 - b
+# with open('message.txt') as file:
+#     message = file.read()  # сообщение для шифрования
+RGBcolors = [0, 1, 2]  # цвета rgb: 0 - r, 1 - g, 2 - b
 bits = [5, 6, 7]  # номера битов для замены; отсчёт от нуля
 percent = 5
 
@@ -19,18 +19,18 @@ def print_header():
     width = start_image.shape[0]
     height = start_image.shape[1]
     n = len(bits)
-    c = len(colors)
+    c = len(RGBcolors)
 
     print(f"Высота = {width} пикселей")
     print(f"Ширина = {height} пикселей")
     print(f"Максимальный встраиваемый объём информации:")
-    print(f"Если используются последний бит и одна компонента цвета: {(width * height) // 8} символов")
-    print(f"Если используются последний бит и все три компоненты цвета: {(width * height * 3) // 8} символов")
-    print(f"Если используются два последних бита и одна компонента цвета: {(width * height * 2) // 8} символов")
-    print(f"Если используются два последних бита и все три компоненты цвета: {(width * height * 2 * 3) // 8} символов")
-    print(f"Если используются три последних младших бита и одна компонента цвета: {(width * height * 3) // 8} символов")
+    print(f"Если используются последний бит и одна компонента цвета: {width} * {height} * 1 * 1 / 8 = {(width * height) // 8} символов")
+    print(f"Если используются последний бит и все три компоненты цвета: {width} * {height} * 1 * 3 / 8 = {(width * height * 3) // 8} символов")
+    print(f"Если используются два последних бита и одна компонента цвета: {width} * {height} * 2 * 1 / 8 = {(width * height * 2) // 8} символов")
+    print(f"Если используются два последних бита и все три компоненты цвета: {width} * {height} * 2 * 3 / 8 = {(width * height * 2 * 3) // 8} символов")
+    print(f"Если используются три последних младших бита и одна компонента цвета: {width} * {height} * 3 * 1 / 8 = {(width * height * 3) // 8} символов")
     print(
-        f"Если используются три последних младших бита и все три компоненты цвета: {(width * height * 3 * 3) // 8} символов")
+        f"Если используются три последних младших бита и все три компоненты цвета: {width} * {height} * 3 * 3 / 8 = {(width * height * 3 * 3) // 8} символов")
 
 
 def write_row(worksheet, name, row, items):
@@ -104,7 +104,7 @@ def print_info():
     width = start_image.shape[0]
     height = start_image.shape[1]
     n = len(bits)
-    c = len(colors)
+    c = len(RGBcolors)
 
     v = width * height * n * c
     count_of_embeding_symbols = (v * percent) // 100
@@ -131,15 +131,20 @@ def set_pixel_bit(pixel, rgb, bit, value):
 
 
 def embed_text_to_image():
+    with open('message.txt') as file:
+        message = file.read()
     number = 0
-    sequence = get_sequence()
-    sequence_length = len(sequence)
+    text_for_embed = ''.join(['{:08b}'.format(symbol) for symbol in bytearray(message, 'utf-8')])
+    text_length = len(text_for_embed)
 
     for row in image:
         for pixel in row:
-            for color in colors:
+            for RGBcolor in RGBcolors:
                 for bit in bits:
-                    set_pixel_bit(pixel, color, bit, sequence[number % sequence_length])
+                    set_pixel_bit(pixel, RGBcolor, bit, text_for_embed[number % text_length])
+                    clr = '{:08b}'.format(pixel[RGBcolor])
+                    clr = clr[:bit] + text_for_embed[number % text_length] + clr[bit + 1:]
+                    pixel[RGBcolor] = int(clr, 2)
 
                     number += 1
 
