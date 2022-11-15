@@ -5,11 +5,11 @@ from matplotlib.pyplot import imread
 from matplotlib.pyplot import imsave
 
 start_image = imread('image.bmp')
-image = copy.deepcopy(imread('image.bmp'))  # начальная картинка
+# image = copy.deepcopy(imread('image.bmp'))  # начальная картинка
 # with open('message.txt') as file:
 #     message = file.read()  # сообщение для шифрования
 RGBcolors = [0, 1, 2]  # цвета rgb: 0 - r, 1 - g, 2 - b
-bits = [5, 6, 7]  # номера битов для замены; отсчёт от нуля
+lastBits = [5, 6, 7]  # номера битов для замены; отсчёт от нуля
 percent = 5
 
 first_24_values_of_blue = [start_image[i // start_image.shape[0]][i % 24][2] for i in range(24)]
@@ -18,7 +18,7 @@ first_24_values_of_blue = [start_image[i // start_image.shape[0]][i % 24][2] for
 def print_header():
     width = start_image.shape[0]
     height = start_image.shape[1]
-    n = len(bits)
+    n = len(lastBits)
     c = len(RGBcolors)
 
     print(f"Высота = {width} пикселей")
@@ -103,7 +103,7 @@ def print_info():
 
     width = start_image.shape[0]
     height = start_image.shape[1]
-    n = len(bits)
+    n = len(lastBits)
     c = len(RGBcolors)
 
     v = width * height * n * c
@@ -131,17 +131,17 @@ def set_pixel_bit(pixel, rgb, bit, value):
 
 
 def insert_text_to_image():
+    imagePixels = copy.deepcopy(imread('image.bmp'))
     with open('message.txt') as file:
         message = file.read()
-    number = 0
     text_for_embed = ''.join(['{:08b}'.format(symbol) for symbol in bytearray(message, 'utf-8')])
     text_length = len(text_for_embed)
+    number = 0
 
-    for row in image:
+    for row in imagePixels:
         for pixel in row:
             for RGBcolor in RGBcolors:
-                for bit in bits:
-                    set_pixel_bit(pixel, RGBcolor, bit, text_for_embed[number % text_length])
+                for bit in lastBits:
                     clr = '{:08b}'.format(pixel[RGBcolor])
                     clr = clr[:bit] + text_for_embed[number % text_length] + clr[bit + 1:]
                     pixel[RGBcolor] = int(clr, 2)
@@ -151,10 +151,11 @@ def insert_text_to_image():
                     if number == count_of_embeding_symbols:
                         return
 
+insert_text_to_image()
 
-if __name__ == '__main__':
-    print_header()
-    print_tables()
-    print_info()
-    insert_text_to_image()
-    imsave('image2.bmp', image)
+# if __name__ == '__main__':
+#     print_header()
+#     print_tables()
+#     print_info()
+#     insert_text_to_image()
+    # imsave('image2.bmp', image)
