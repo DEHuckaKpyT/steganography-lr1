@@ -130,7 +130,7 @@ def set_pixel_bit(pixel, rgb, bit, value):
     pixel[rgb] = int(color, 2)
 
 
-def embed_text_to_image():
+def insert_text_to_image():
     with open('message.txt') as file:
         message = file.read()
     number = 0
@@ -156,5 +156,5 @@ if __name__ == '__main__':
     print_header()
     print_tables()
     print_info()
-    embed_text_to_image()
+    insert_text_to_image()
     imsave('image2.bmp', image)
